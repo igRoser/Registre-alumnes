@@ -6,22 +6,24 @@ const RECIPIENT_EMAIL = 'ignasi.tomas@escolaroserlesplanes.net';
 const MAX_MAILTO_LENGTH = 2000;
 
 export const ConductForm: React.FC = () => {
-  const [formData, setFormData] = useState<ConductEntry>({
-    timestamp: new Date().toISOString(),
+  const getInitialState = (): ConductEntry => ({
+    timestamp: new Date().toISOString().slice(0, 16),
     studentName: '',
     gradeGroup: '',
     category: '',
     description: '',
     measureAdopted: '',
-    teacherName: '', // Could be pre-filled from auth context in a real app
+    teacherName: '',
   });
+
+  const [formData, setFormData] = useState<ConductEntry>(getInitialState());
 
   const [errors, setErrors] = useState<Partial<Record<keyof ConductEntry, string>>>({});
   const [uriLength, setUriLength] = useState(0);
 
   // Auto-update timestamp on mount
   useEffect(() => {
-    setFormData(prev => ({ ...prev, timestamp: new Date().toISOString() }));
+    setFormData(prev => ({ ...prev, timestamp: new Date().toISOString().slice(0, 16) }));
   }, []);
 
   const validate = (): boolean => {
@@ -40,7 +42,7 @@ export const ConductForm: React.FC = () => {
     const subject = `[CONDUCTA] - ${formData.category} - ${formData.studentName} - ${formData.gradeGroup}`;
     
     const body = [
-      `FECHA/HORA: ${formData.timestamp}`,
+      `FECHA/HORA: ${new Date(formData.timestamp).toLocaleString()}`,
       `ALUMNO: ${formData.studentName}`,
       `CURSO/GRUPO: ${formData.gradeGroup}`,
       `CATEGORÍA: ${formData.category}`,
@@ -73,6 +75,12 @@ export const ConductForm: React.FC = () => {
         return;
       }
       window.location.href = uri;
+
+      // Reset form after a short delay to allow the mailto to trigger
+      setTimeout(() => {
+        setFormData(getInitialState());
+        setErrors({});
+      }, 500);
     }
   };
 
@@ -95,13 +103,13 @@ export const ConductForm: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className={labelClasses}>
-              <Clock className="w-4 h-4" /> Fecha y Hora (Auto)
+              <Clock className="w-4 h-4" /> Fecha y Hora
             </label>
             <input 
-              type="text" 
-              value={new Date(formData.timestamp).toLocaleString()} 
-              readOnly 
-              className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+              type="datetime-local" 
+              value={formData.timestamp} 
+              onChange={(e) => setFormData({ ...formData, timestamp: e.target.value })}
+              className={`${inputClasses} ${errors.timestamp ? 'border-red-300' : ''}`}
             />
           </div>
           <div>
