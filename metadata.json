@@ -1,0 +1,5 @@
+{
+  "name": "Registro Escolar de Conductas",
+  "description": "Sistema de registro de incidencias y conductas para docentes con integración vía email institucional.",
+  "requestFramePermissions": []
+}
